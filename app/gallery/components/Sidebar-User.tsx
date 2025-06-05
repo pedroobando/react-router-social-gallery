@@ -1,98 +1,62 @@
-import { type FC } from 'react';
-import { Link } from 'react-router';
+import { type FC, type ReactNode } from 'react';
+import { Link, NavLink } from 'react-router';
 import { cn } from '@/lib/utils';
-import { LayoutGrid } from 'lucide-react';
+import { Folder } from 'lucide-react';
 
-interface NavItemProps {
+export interface NavItemProps {
   href: string;
   icon: React.ReactNode;
   children: React.ReactNode;
-  active?: boolean;
 }
 
-function NavItem({ href, icon, children, active }: NavItemProps) {
-  return (
-    <Link
-      to={href}
-      className={cn(
-        'flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg',
-        active && 'bg-gray-100'
-      )}
-    >
-      {icon}
-      <span>{children}</span>
-    </Link>
-  );
+export interface FolderItem {
+  href: string;
+  children: ReactNode;
 }
 
-function FolderItem({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      to={href}
-      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-    >
-      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-        />
-      </svg>
-      <span>{children}</span>
-    </Link>
-  );
+export interface SidebarProps {
+  navItemLists: NavItemProps[];
+  folderItems: FolderItem[];
 }
 
-export const SidebarUser: FC = () => {
+const _urlBaseFolder: string = '/gal/collect';
+
+export const SidebarUser: FC<SidebarProps> = ({ navItemLists, folderItems }) => {
   return (
-    <div className="w-64 border-r bg-white">
-      <div className="p-4">
-        <h1 className="text-xl font-bold">Gallery</h1>
-      </div>
-      <nav className="space-y-1 px-2">
-        <NavItem href="/home" icon={<LayoutGrid className="h-4 w-4" />} active>
-          All content
-        </NavItem>
-        <NavItem
-          href="/home/presentations"
-          icon={
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                d="M15 3v18M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+    <nav className="space-y-2 px-2">
+      {navItemLists.map((navItem, keyId) => (
+        <NavLink
+          key={keyId}
+          to={navItem.href}
+          end
+          className={({ isActive, isPending }) =>
+            cn(
+              'flex items-center gap-2 px-3 py-2 text-sm text-primary rounded-lg transition-all duration-300',
+              isActive && 'bg-primary/10',
+              isPending && 'bg-primary/5 '
+            )
           }
         >
-          Presentations
-        </NavItem>
-        <NavItem
-          href="/home/analytics"
-          icon={
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 5h6m-3 4v6m-3-3h6"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          }
-        >
-          Analytics
-        </NavItem>
-        <div className="py-3">
-          <div className="px-3 text-xs font-medium uppercase text-gray-500">Collections</div>
-          <div className="mt-2">
-            <FolderItem href="#">Product Demos</FolderItem>
-            <FolderItem href="#">Case Studies</FolderItem>
-            <FolderItem href="#">Sales Collateral</FolderItem>
-            <FolderItem href="#">Training Materials</FolderItem>
-          </div>
+          {navItem.icon}
+          <span>{navItem.children}</span>
+        </NavLink>
+      ))}
+
+      <div className="py-3">
+        <div className="px-3 text-xs font-medium uppercase text-gray-500">Collections</div>
+        <div className="mt-2">
+          {folderItems.map((folderItem, keyId) => (
+            <Link
+              key={keyId}
+              to={`${_urlBaseFolder}/${folderItem.href}`.toLowerCase()}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              <Folder className="w-4 h-4 text-primary/40" />
+              <span>{folderItem.children}</span>
+            </Link>
+          ))}
         </div>
-      </nav>
-    </div>
+      </div>
+    </nav>
   );
 };

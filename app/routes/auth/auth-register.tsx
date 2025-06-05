@@ -7,9 +7,10 @@ import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import placeholder from '~/assets/placeholder.svg';
 import type { Route } from './+types/auth-register';
-import { createUser, getUsers } from '~/server-fake/users-data-fake';
+import { createUser, getUsers } from '~/.server/users-data-fake';
 
 import { type User, type UserRegister } from '@/user/interfaces/user.interface';
+import { commitSession, getSession } from '~/sessions.server';
 
 export const loader = async () => {
   const users: User[] = await getUsers(); // If no error, return null or an empty object
@@ -20,6 +21,7 @@ export const loader = async () => {
 };
 
 export const action = async ({ request }: Route.ActionArgs) => {
+  const session = await getSession(request.headers.get('Cookie'));
   const form = await request.formData();
   const email = form.get('email') ?? '';
   const password = form.get('password') ?? '';
@@ -33,7 +35,19 @@ export const action = async ({ request }: Route.ActionArgs) => {
   };
 
   try {
-    await createUser(newUser);
+    const user = await createUser(newUser);
+
+    session.set('userId', user.id);
+    session.set('name', user.name);
+    session.set('token', 'user.token');
+
+    // Login succeeded, send them to the home page.
+    return redirect('/', {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
+
     return redirect('/auth'); // Redirect to the login page after successful registration
   } catch (error: any) {
     return { error: true, errormessage: error.message, user: null };

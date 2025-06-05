@@ -9,14 +9,14 @@ import { Label } from '~/components/ui/label';
 import placeholder from '~/assets/placeholder.svg';
 
 import { commitSession, getSession } from '~/sessions.server';
-import { validateCredentials } from '~/server-fake/users-data-fake';
+import { validateCredentials } from '~/.server/users-data-fake';
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
   const session = await getSession(request.headers.get('Cookie'));
   // console.log('Session:', session.has('userId'));
 
   if (session.get('userId')) {
-    return redirect('/home');
+    return redirect('/gal');
   }
 
   return data(
@@ -36,12 +36,8 @@ export async function action({ request }: Route.ActionArgs) {
   const email = form.get('email') ?? '';
   const password = form.get('password') ?? '';
 
-  console.log(email, password);
-
   // console.log(form);
   const userId = await validateCredentials(email.toString(), password.toString());
-
-  console.log('userId: ', userId);
 
   if (userId === undefined) {
     session.flash('error', 'Invalid username/password');

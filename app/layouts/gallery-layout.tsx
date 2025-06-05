@@ -1,20 +1,23 @@
-import { createCookie, createCookieSessionStorage, Outlet, redirect } from 'react-router';
-import { Bell, Grid, Search } from 'lucide-react';
+import { Outlet, redirect } from 'react-router';
+import { Bell, Grid, LayoutGrid, Search } from 'lucide-react';
 
 import type { Route } from './+types/gallery-layout';
+import { getSession } from '~/sessions.server';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 import placeholder from '@/assets/placeholder.svg';
-import { getSession } from '~/sessions.server';
-import { SidebarUser } from '~/gallery/components/Sidebar-User';
+
+import { SidebarUser, type FolderItem, type NavItemProps } from '~/gallery/components/Sidebar-User';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Gallery' }, { name: 'description', content: 'Gallery from users arts' }];
 }
 
 export const loader = async ({ request, params }: Route.LoaderArgs) => {
+  // console.log({ request });
+
   const session = await getSession(request.headers.get('Cookie'));
   // const { clientId } = params;
 
@@ -42,13 +45,42 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
   };
 };
 
+const navItem: NavItemProps[] = [
+  { children: 'All Contents', href: '/gal', icon: <LayoutGrid className="h-4 w-4" /> },
+  {
+    children: 'Presentation',
+    href: 'gal/presentations',
+    icon: <LayoutGrid className="h-4 w-4" />,
+  },
+  {
+    children: 'Others',
+    href: 'gal/others',
+    icon: <LayoutGrid className="h-4 w-4" />,
+  },
+];
+
+const folderItem: FolderItem[] = [
+  { children: 'Photo Family', href: 'family' },
+  { children: 'Card Buys', href: 'carsbuys' },
+  { children: 'Running frends', href: 'running' },
+  { children: 'Private Album', href: 'private_Album' },
+];
+
 const GalleryLayout = ({ loaderData }: Route.ComponentProps) => {
   const { userName } = loaderData;
 
   return (
     <div className="flex h-screen bg-white">
       {/* Sidebar */}
-      <SidebarUser />
+      {/* <SidebarUser /> */}
+      <div className="w-64 border-r bg-white">
+        <div className="p-4">
+          <h1 className="text-xl font-bold">
+            Gallery <span className="text-base font-thin">- {userName}</span>
+          </h1>
+        </div>
+        <SidebarUser navItemLists={navItem} folderItems={folderItem} />
+      </div>
 
       {/* Main content */}
       <div className="flex-1">
