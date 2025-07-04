@@ -10,8 +10,9 @@ export interface NavItemProps {
 }
 
 export interface FolderItem {
-  href: string;
-  children: ReactNode;
+  id: string;
+  name: string;
+  slug: string;
 }
 
 export interface SidebarProps {
@@ -48,11 +49,11 @@ export const SidebarUser: FC<SidebarProps> = ({ navItemLists, folderItems }) => 
           {folderItems.map((folderItem, keyId) => (
             <Link
               key={keyId}
-              to={`${_urlBaseFolder}/${folderItem.href}`.toLowerCase()}
+              to={`${_urlBaseFolder}/${folderItem.slug}`.toLowerCase()}
               className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
             >
               <Folder className="w-4 h-4 text-primary/40" />
-              <span>{folderItem.children}</span>
+              <span>{folderItem.name}</span>
             </Link>
           ))}
         </div>

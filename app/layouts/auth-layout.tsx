@@ -1,4 +1,23 @@
-import { Outlet } from 'react-router';
+import { data, Outlet, redirect } from 'react-router';
+import type { Route } from './+types/auth-layout';
+import { commitSession, getSession } from '~/sessions.server';
+
+export const loader = async ({ request }: Route.LoaderArgs) => {
+  const session = await getSession(request.headers.get('Cookie'));
+
+  if (session.get('userId')) {
+    return redirect('/gal');
+  }
+
+  return data(
+    { error: session.get('error') },
+    {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    }
+  );
+};
 
 const AuthLayout = () => {
   return (

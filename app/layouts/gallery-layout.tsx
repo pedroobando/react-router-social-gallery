@@ -9,77 +9,57 @@ import { Input } from '@/components/ui/input';
 
 import placeholder from '@/assets/placeholder.svg';
 
-import { SidebarUser, type FolderItem, type NavItemProps } from '~/gallery/components/Sidebar-User';
+import { SidebarUser, type NavItemProps } from '~/gallery/components/Sidebar-User';
+import { CloseSession } from '~/gallery/components/Close-Session';
+import { folderApi } from '~/.server/endpoints';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Gallery' }, { name: 'description', content: 'Gallery from users arts' }];
 }
 
-export const loader = async ({ request, params }: Route.LoaderArgs) => {
-  // console.log({ request });
-
+export const loader = async ({ request }: Route.LoaderArgs) => {
   const session = await getSession(request.headers.get('Cookie'));
-  // const { clientId } = params;
+  let folderList = undefined;
 
   if (!session.has('userId')) {
     return redirect('/auth');
   }
 
-  const userName = session.get('name');
-  // const clients = await getClients();
-  // if (clientId) {
-  //   const client = clients.find((c) => c.id === clientId);
+  const { data, status } = await folderApi.getfolders(session.get('token')!);
+  if (status === 200) {
+    folderList = data
+      .filter((folder) => folder.active)
+      .map((folder) => ({ slug: folder.slug, id: folder.id, name: folder.name }));
+  }
 
-  //   return {
-  //     clients,
-  //     userName,
-  //     client,
-  //   };
-  // }
-
-  // console.log('ChatLayout loader called');
-
-  return {
-    // clients,
-    userName,
-  };
+  return { userName: session.get('name'), folderList };
 };
 
 const navItem: NavItemProps[] = [
   { children: 'All Contents', href: '/gal', icon: <LayoutGrid className="h-4 w-4" /> },
   {
-    children: 'Presentation',
-    href: 'gal/presentations',
+    children: 'Folders',
+    href: 'gal/folders',
     icon: <LayoutGrid className="h-4 w-4" />,
   },
-  {
-    children: 'Others',
-    href: 'gal/others',
-    icon: <LayoutGrid className="h-4 w-4" />,
-  },
-];
-
-const folderItem: FolderItem[] = [
-  { children: 'Photo Family', href: 'family' },
-  { children: 'Card Buys', href: 'carsbuys' },
-  { children: 'Running frends', href: 'running' },
-  { children: 'Private Album', href: 'private_Album' },
 ];
 
 const GalleryLayout = ({ loaderData }: Route.ComponentProps) => {
-  const { userName } = loaderData;
+  const { userName, folderList } = loaderData;
 
   return (
-    <div className="flex h-screen bg-white">
+    <main className="flex h-screen bg-white">
       {/* Sidebar */}
       {/* <SidebarUser /> */}
-      <div className="w-64 border-r bg-white">
+      <div className="flex flex-col w-64 border-r bg-white">
         <div className="p-4">
           <h1 className="text-xl font-bold">
             Gallery <span className="text-base font-thin">- {userName}</span>
           </h1>
         </div>
-        <SidebarUser navItemLists={navItem} folderItems={folderItem} />
+        <SidebarUser navItemLists={navItem} folderItems={folderList ?? []} />
+        <div className="flex flex-1"></div>
+        <CloseSession />
       </div>
 
       {/* Main content */}
@@ -99,20 +79,14 @@ const GalleryLayout = ({ loaderData }: Route.ComponentProps) => {
               <Bell className="h-4 w-4" />
             </Button>
             <div className="h-8 w-8 overflow-hidden rounded-full">
-              <img
-                src={placeholder}
-                alt="Avatar"
-                width={32}
-                height={32}
-                className="h-full w-full object-cover"
-              />
+              <img src={placeholder} alt="Avatar" width={32} height={32} className="h-full w-full object-cover" />
             </div>
           </div>
         </header>
 
         <Outlet />
       </div>
-    </div>
+    </main>
   );
 };
 
